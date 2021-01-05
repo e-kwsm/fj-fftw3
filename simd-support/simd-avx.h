@@ -395,7 +395,7 @@ static inline V BYTWJ2(const R *t, V sr)
 #endif
 #define TWVLS (2 * VL)
 
-
+#define VENTER() /* nothing */
 /* Use VZEROUPPER to avoid the penalty of switching from AVX to SSE.
    See Intel Optimization Manual (April 2011, version 248966), Section
    11.3 */
