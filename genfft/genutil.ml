@@ -316,13 +316,13 @@ let finalize_fcn ast =
     else
       C.extract_constants
 	
-  in mergedecls (C.Block (extract_constants ast, [ast; C.Simd_leavefun]))
+  in mergedecls (C.Block (extract_constants ast, [C.Simd_enterfun; ast; C.Simd_leavefun]))
 
 let twinstr_to_string vl x =
-  if !Simdmagic.simd_mode then 
+  if !Simdmagic.simd_mode then
     Twiddle.twinstr_to_simd_string vl x
   else
     Twiddle.twinstr_to_c_string x
 
-let make_volatile_stride n x = 
+let make_volatile_stride n x =
   C.CCall ("MAKE_VOLATILE_STRIDE", C.Comma((C.Integer n), x))
