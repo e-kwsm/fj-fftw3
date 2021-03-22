@@ -306,20 +306,21 @@ let unparse tree =
   else
     C.unparse_function tree)
 
-let finalize_fcn ast = 
-  let mergedecls = function
-      C.Block (d1, [C.Block (d2, s)]) -> C.Block (d1 @ d2, s)
-    | x -> x
-  and extract_constants =
-    if !Simdmagic.simd_mode then 
-      Simd.extract_constants 
+let finalize_fcn ast =
+  let mergedecls = function (* closure *)
+      C.Block (d1, [C.Block (d2, s)]) -> C.Block (d1 @ d2, s) (* Returns C.Block (d1 @ d2) if the arg matches C.Block (...) *)
+    | x -> x (* If it does not match, the arg is returned as it is *)
+  and extract_constants = (* Select which module's extract_constants function to use by simd_mode *)
+    if !Simdmagic.simd_mode then
+      Simd.extract_constants
     else
       C.extract_constants
-	
-  in mergedecls (C.Block (extract_constants ast, [ast; C.Simd_leavefun]))
+
+  in mergedecls (C.Block (extract_constants ast, [C.Simd_enterfun; ast; C.Simd_leavefun])) (* Semicolon indicates list delimiter *)
+  (* It might be better to write C.Simd_enterfun in extract_constants instead of here *)
 
 let twinstr_to_string vl x =
-  if !Simdmagic.simd_mode then 
+  if !Simdmagic.simd_mode then
     Twiddle.twinstr_to_simd_string vl x
   else
     Twiddle.twinstr_to_c_string x

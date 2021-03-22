@@ -172,9 +172,10 @@ and unparse_ast ast =
             (unparse_code code) ^
 	    "}\n"
 
-  in match ast with 
+  in match ast with
   | Asch a -> (unparse_annotated true a)
   | Return x -> "return " ^ unparse_ast x ^ ";"
+  | Simd_enterfun -> "VENTER();"
   | Simd_leavefun -> "VLEAVE();"
   | For (a, b, c, d) ->
       "for (" ^
