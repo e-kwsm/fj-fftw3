@@ -32,33 +32,33 @@
 #  define DS(d,s) s /* single-precision option */
 #  define TYPE(name) name ## _f32
 #  define TYPESUF(name,suf) name ## _f32 ## suf
-#  define ALLA	svptrue_b32()
+#  define ALLA svptrue_b32()
 #else /* !FFTW_SINGLE */
 #  define DS(d,s) d /* double-precision option */
 #  define TYPE(name) name ## _f64
 #  define TYPESUF(name,suf) name ## _f64 ## suf
-#  define ALLA  svptrue_b64()
+#  define ALLA svptrue_b64()
 #endif /* FFTW_SINGLE */
 
 #if SVE_SIZE == 2048
-#define VL DS(16, 32)        /* SIMD complex vector length */
-#define MASKA DS(svptrue_pat_b64(SV_VL32),svptrue_pat_b32(SV_VL64))
+#define VL DS(16, 32) /* SIMD complex vector length */
+#define ALLTRUE DS(svptrue_pat_b64(SV_VL32),svptrue_pat_b32(SV_VL64))
 #elif SVE_SIZE == 1024
-#define VL DS(8, 16)        /* SIMD complex vector length */
-#define MASKA DS(svptrue_pat_b64(SV_VL16),svptrue_pat_b32(SV_VL32))
-#elif SVE_SIZE == 512
-#define VL DS(4, 8)        /* SIMD complex vector length */
-#define MASKA DS(svptrue_pat_b64(SV_VL8),svptrue_pat_b32(SV_VL16))
+#define VL DS(8, 16) /* SIMD complex vector length */
+#define ALLTRUE DS(svptrue_pat_b64(SV_VL16),svptrue_pat_b32(SV_VL32))
+  #elif SVE_SIZE == 512
+#define VL DS(4, 8) /* SIMD complex vector length */
+#define ALLTRUE DS(svptrue_pat_b64(SV_VL8),svptrue_pat_b32(SV_VL16))
 #elif SVE_SIZE == 256
-#define VL DS(2, 4)        /* SIMD complex vector length */
-#define MASKA DS(svptrue_pat_b64(SV_VL4),svptrue_pat_b32(SV_VL8))
+#define VL DS(2, 4) /* SIMD complex vector length */
+#define ALLTRUE DS(svptrue_pat_b64(SV_VL4),svptrue_pat_b32(SV_VL8))
 #elif SVE_SIZE == 128
-#define VL DS(1, 2)        /* SIMD complex vector length */
-#define MASKA DS(svptrue_pat_b64(SV_VL2),svptrue_pat_b32(SV_VL4))
+#define VL DS(1, 2) /* SIMD complex vector length */
+#define ALLTRUE DS(svptrue_pat_b64(SV_VL2),svptrue_pat_b32(SV_VL4))
 #else /* SVE_SIZE */
 #error "SVE_SIZE must be 128, 256, 512, 1024, 2048 bits"
 #endif /* SVE_SIZE */
-#define SIMD_VSTRIDE_OKA(x) ((x) == 2) 
+#define SIMD_VSTRIDE_OKA(x) ((x) == 2)
 #define SIMD_STRIDE_OKPAIR SIMD_STRIDE_OK
 
 #if defined(__GNUC__) && !defined(__ARM_FEATURE_SVE) /* sanity check */
@@ -87,40 +87,32 @@ typedef DS(svfloat64_t, svfloat32_t) V;
 
 /* do we need to mask VLIT somehow ?*/
 #define VLIT(re, im) DS(svdupq_n_f64(re,im),svdupq_n_f32(re,im,re,im))
-#define VLIT1(val) TYPESUF(svdup_n,_z)(MASKA,val)
+#define VLIT1(val) TYPESUF(svdup_n,_z)(ALLTRUE,val)
 #define LDK(x) x
 #define DVK(var, val) V var = VLIT1(val)
 #define VZERO VLIT1(DS(0.,0.f))
-#define VRONE VLIT(DS(1.,1.f),DS(0.,0.f))
-#define VCI VLIT(DS(0.,0.f),DS(1.,1.f))
-#define VCONEMI VLIT(DS(1.,1.f),DS(-1.,-1.f))
-#define VONE  VLIT1(DS(1.,1.f))
-#define VMINUSONE VLIT1(DS(-1.,-1.f))
+#define VRONE VLIT(DS(1.,1.f), DS(0.,0.f)) /* Set the real part to one */
+#define VCI VLIT(DS(0.,0.f), DS(1.,1.f))   /* Set the imaginary part to one */
+#define VONE VLIT1(DS(1.,1.f)) /* Set both the real and imaginary parts to one */
+#define VMINUSONE VLIT1(DS(-1.,-1.f)) /* Set both the real and imaginary parts to minus one */
 
-#define VDUPL(x) TYPE(svtrn1)(x,x)
-#define VDUPH(x) TYPE(svtrn2)(x,x)
+#define VDUPL(x) TYPE(svtrn1)(x,x) /* Take out the lower half and interleave */
+#define VDUPH(x) TYPE(svtrn2)(x,x) /* Take out the higher half and interleave */
 
 #ifdef FFTW_SINGLE
-//#define FLIP_RI(x) svreinterpret_f32_u64(svrevw_u64_x(MASKA,svreinterpret_u64_f32(x)))
-#define FLIP_RI(x) TYPE(svtrn1)(VDUPH(x),x)
+#define FLIP_RI(x) TYPE(svtrn1)(VDUPH(x),x) /* Flip the real and imaginary parts */
 #else
 #define FLIP_RI(x) TYPE(svtrn1)(VDUPH(x),x)
 #endif
 
-/* FIXME: there is a better way, surely */
-/* #define VCONJ(x)  TYPESUF(svcmla,_x)(MASKA,TYPESUF(svcmla,_x)(MASKA,VZERO,x,VRONE,0),x,VRONE,270) */
-#define VCONJ(x) TYPESUF(svmul,_x)(MASKA,x,VCONEMI)
-#if 0
-#define VBYI(x)  TYPESUF(svcmla,_x)(MASKA,TYPESUF(svcmla,_x)(MASKA,VZERO,x,VCI,0),x,VCI,90)
-#else
-#define VBYI(x)  TYPESUF(svcadd,_x)(MASKA,VZERO,x,90)
-#endif
+#define VCONJ(x) TYPESUF(svneg,_m)(x,pgi,x)
+#define VBYI(x) TYPESUF(svcadd,_x)(pg,VZERO,x,90)
 
-#define VNEG(a)   TYPESUF(svneg,_x)(MASKA,a)
+#define VNEG(a) TYPESUF(svneg, _x)(pg, a)
 #if !defined(USE_UNMASKED_ASSEMBLY)
-#define VADD(a,b) TYPESUF(svadd,_x)(MASKA,a,b)
-#define VSUB(a,b) TYPESUF(svsub,_x)(MASKA,a,b)
-#define VMUL(a,b) TYPESUF(svmul,_x)(MASKA,a,b)
+#define VADD(a,b) TYPESUF(svadd,_x)(pg,a,b)
+#define VSUB(a,b) TYPESUF(svsub,_x)(pg,a,b)
+#define VMUL(a,b) TYPESUF(svmul,_x)(pg,a,b)
 #else
 static inline V VADD(const V a, const V b) {
 	V r;
@@ -138,60 +130,58 @@ static inline V VMUL(const V a, const V b) {
 	return r;
 }
 #endif
-#define VFMA(a, b, c)  TYPESUF(svmad,_x)(MASKA,b,a,c)
-#define VFMS(a, b, c)  TYPESUF(svnmsb,_x)(MASKA,b,a,c)
-#define VFNMS(a, b, c) TYPESUF(svmsb,_x)(MASKA,b,a,c)
-#define VFMAI(b, c)    TYPESUF(svcadd,_x)(MASKA,c,b,90)
-#define VFNMSI(b, c)   TYPESUF(svcadd,_x)(MASKA,c,b,270)
-/* FIXME: next 3 overkill ? */
+#define VFMA(a, b, c)  TYPESUF(svmla,_x)(pg,c,a,b)
+#define VFMS(a, b, c)  TYPESUF(svnmls,_x)(pg,c,a,b)
+#define VFNMS(a, b, c) TYPESUF(svmls,_x)(pg,c,a,b)
+#define VFMAI(b, c)    TYPESUF(svcadd,_x)(pg,c,b,90)
+#define VFNMSI(b, c)   TYPESUF(svcadd,_x)(pg,c,b,270)
+#define VFMACONJ(b,c)  VADD(VCONJ(b),c)
+#define VFMSCONJ(b,c)  VSUB(VCONJ(b),c)
+#define VFNMSCONJ(b,c) VSUB(c, VCONJ(b))
 #if 0
-#define VFMACONJ(b,c)  TYPESUF(svcmla,_x)(MASKA,TYPESUF(svcmla,_x)(MASKA,c,b,VRONE,0),b,VRONE,270)
-#else
-/* Use inline functions instead of macros to avoid replicating inputs */
-static inline V VFMACONJ(V b, V c) {
-	V m = TYPESUF(svcmla,_x)(MASKA,c,b,VRONE,0);
-	return TYPESUF(svcmla,_x)(MASKA,m,b,VRONE,270);
-}
-#endif
-#define VFMSCONJ(b,c)  VFMACONJ(b,VNEG(c))
-#define VFNMSCONJ(b,c) VNEG(VFMSCONJ(b,c))
-
-#if 0
-#define VZMUL(a,b)    TYPESUF(svcmla,_x)(MASKA,TYPESUF(svcmla,_x)(MASKA,VZERO,a,b,0),a,b,90)
-#define VZMULJ(a,b)   TYPESUF(svcmla,_x)(MASKA,TYPESUF(svcmla,_x)(MASKA,VZERO,a,b,0),a,b,270)
-#define VZMULI(a,b)   VZMUL(VCI,VZMUL(a,b))
-#define VZMULIJ(a,b)   VZMUL(VCI,VZMULJ(a,b))
+#define VZMUL(a, b)    TYPESUF(svcmla, _x)(pg, TYPESUF(svcmla, _x)(pg, VZERO, a, b, 0), a, b, 90)
+#define VZMULJ(a, b)   TYPESUF(svcmla, _x)(pg, TYPESUF(svcmla, _x)(pg, VZERO, a, b, 0), a, b, 270)
+#define VZMULI(a, b)   VBYI(VZMUL(a, b))
+#define VZMULIJ(a, b)  VBYI(VZMULJ(a, b))
 #else
 /* Use inline functions instead of macros to avoid replicating inputs */
 static inline V VZMUL(V a, V b) {
-	V m = TYPESUF(svcmla,_x)(MASKA,VZERO,a,b,0);
-	return TYPESUF(svcmla,_x)(MASKA,m,a,b,90);
+    svbool_t pg = ALLTRUE;
+    V m = TYPESUF(svcmla, _x)(pg, VZERO, a, b, 0);
+    return TYPESUF(svcmla, _x)(pg, m, a, b, 90);
 }
 static inline V VZMULJ(V a, V b) {
-        V m = TYPESUF(svcmla,_x)(MASKA,VZERO,a,b,0);
-        return TYPESUF(svcmla,_x)(MASKA,m,a,b,270);
+    svbool_t pg = ALLTRUE;
+    V m = TYPESUF(svcmla, _x)(pg, VZERO, a, b, 0);
+    return TYPESUF(svcmla, _x)(pg, m, a, b, 270);
 }
-/* FIXME: there's probably a better way */
-static inline V VZMULI(V a, V b) {
-	V m = VZMUL(a,b);
-	return VZMUL(VCI,m);
+
+static inline V VZMULI(V a, V b)
+{
+    svbool_t pg = ALLTRUE;
+    V tmp = TYPESUF(svcmla, _x)(pg, TYPESUF(svcmla, _x)(pg,VZERO,a,b,0), a, b, 90);
+    return VBYI(tmp);
 }
-/* FIXME: there's probably a better way */
-static inline V VZMULIJ(V a, V b) {
-	V m = VZMULJ(a,b);
-	return VZMUL(VCI,m);
+
+static inline V VZMULIJ(V a, V b)
+{
+    svbool_t pg = ALLTRUE;
+    V tmp = TYPESUF(svcmla, _x)(pg, TYPESUF(svcmla, _x)(pg,VZERO,a,b,0), a, b, 270);
+    return VBYI(tmp);
 }
 #endif
 
 static inline V LDA(const R *x, INT ivs, const R *aligned_like) {
   (void)aligned_like; /* UNUSED */
   (void)ivs; /* UNUSED */
-  return TYPE(svld1)(MASKA,x);
+  svbool_t pg = ALLTRUE;
+  return TYPE(svld1)(pg, x);
 }
 static inline void STA(R *x, V v, INT ovs, const R *aligned_like) {
   (void)aligned_like; /* UNUSED */
   (void)ovs; /* UNUSED */
-  TYPE(svst1)(MASKA,x,v);
+  svbool_t pg = ALLTRUE;
+  TYPE(svst1)(pg, x, v);
 }
 
 #if FFTW_SINGLE
@@ -199,27 +189,29 @@ static inline void STA(R *x, V v, INT ovs, const R *aligned_like) {
 static inline V LDu(const R *x, INT ivs, const R *aligned_like)
 {
   (void)aligned_like; /* UNUSED */
+  svbool_t pg = ALLTRUE;
   svint64_t gvvl = svindex_s64(0, ivs/2);
 
-  return svreinterpret_f32_f64(svld1_gather_s64index_f64(MASKA, (const double *)x, gvvl));
+  return svreinterpret_f32_f64(svld1_gather_s64index_f64(pg, (const double *)x, gvvl));
 }
 
 static inline void STu(R *x, V v, INT ovs, const R *aligned_like)
 {
   (void)aligned_like; /* UNUSED */
+  svbool_t pg = ALLTRUE;
   const svint64_t gvvl = svindex_s64(0, ovs/2);
 #if !defined(BRANCHLESS_STU)
-  if (ovs==0) { // FIXME: hack for extra_iter hack support
+  if (ovs == 0) { // FIXME: hack for extra_iter hack support
     v = svreinterpret_f32_f64(svdup_lane_f64(svreinterpret_f64_f32(v),0));
   }
-  svst1_scatter_s64index_f64(MASKA, (double *)x, gvvl, svreinterpret_f64_f32(v));
+  svst1_scatter_s64index_f64(pg, (double *)x, gvvl, svreinterpret_f64_f32(v));
 #else
   /* no-branch implementation of extra_iter hack support
-   * if ovs is non-zero, keep the original MASKA;
+   * if ovs is non-zero, keep the original predicate;
    * if not, only store one 64 bits element (two 32 bits consecutive)
    */
   const svbool_t which = svdupq_n_b64(ovs != 0, ovs != 0);
-  const svbool_t mask = svsel_b(which, MASKA, svptrue_pat_b64(SV_VL1));
+  const svbool_t mask = svsel_b(which, pg, svptrue_pat_b64(SV_VL1));
   svst1_scatter_s64index_f64(mask, (double *)x, gvvl, svreinterpret_f64_f32(v));
 #endif
 }
@@ -230,29 +222,31 @@ static inline V LDu(const R *x, INT ivs, const R *aligned_like)
 {
   (void)aligned_like; /* UNUSED */
   (void)aligned_like; /* UNUSED */
-  svint64_t  gvvl = svindex_s64(0, ivs);
-  gvvl = svzip1_s64(gvvl, svadd_n_s64_x(MASKA, gvvl, 1));
+  svbool_t pg = ALLTRUE;
+  svint64_t gvvl = svindex_s64(0, ivs);
+  gvvl = svzip1_s64(gvvl, svadd_n_s64_x(pg, gvvl, 1));
 
-  return svld1_gather_s64index_f64(MASKA, x, gvvl);
+  return svld1_gather_s64index_f64(pg, x, gvvl);
 }
 
 static inline void STu(R *x, V v, INT ovs, const R *aligned_like)
 {
   (void)aligned_like; /* UNUSED */
+  svbool_t pg = ALLTRUE;
   svint64_t gvvl = svindex_s64(0, ovs);
-  gvvl = svzip1_s64(gvvl, svadd_n_s64_x(MASKA, gvvl, 1));
+  gvvl = svzip1_s64(gvvl, svadd_n_s64_x(pg, gvvl, 1));
 #if !defined(BRANCHLESS_STU)
   if (ovs==0) { // FIXME: hack for extra_iter hack support
     v = svdupq_lane_f64(v,0);
   }
-  svst1_scatter_s64index_f64(MASKA, x, gvvl, v);
+  svst1_scatter_s64index_f64(pg, x, gvvl, v);
 #else
   /* no-branch implementation of extra_iter hack support
-   * if ovs is non-zero, keep the original MASKA;
+   * if ovs is non-zero, keep the original predicate;
    * if not, only store two 64 bits elements
    */
   const svbool_t which = svdupq_n_b64(ovs != 0, ovs != 0);
-  const svbool_t mask = svsel_b(which, MASKA, svptrue_pat_b64(SV_VL2));
+  const svbool_t mask = svsel_b(which, pg, svptrue_pat_b64(SV_VL2));
 
   svst1_scatter_s64index_f64(mask, x, gvvl, v);
 #endif
@@ -263,33 +257,34 @@ static inline void STu(R *x, V v, INT ovs, const R *aligned_like)
 #define LD LDu
 #define ST STu
 
+#define STM2(x, v, ovs, a) ST(x, v, ovs, a)
+#define STN2(x, v0, v1, ovs) /* nop */
+
 #ifdef FFTW_SINGLE
-#define STM2(x, v, ovs, a) ST(x, v, ovs, a)
-#define STN2(x, v0, v1, ovs) /* nop */
 
 static inline void STM4(R *x, V v, INT ovs, const R *aligned_like)
 {
   (void)aligned_like; /* UNUSED */
   (void)aligned_like; /* UNUSED */
-  svint32_t  gvvl = svindex_s32(0, ovs);
+  svbool_t pg = ALLTRUE;
+  svint32_t gvvl = svindex_s32(0, ovs);
 
-  svst1_scatter_s32index_f32(MASKA, x, gvvl, v);
+  svst1_scatter_s32index_f32(pg, x, gvvl, v);
 }
-#define STN4(x, v0, v1, v2, v3, ovs)  /* no-op */
+
 #else /* !FFTW_SINGLE */
-#define STM2(x, v, ovs, a) ST(x, v, ovs, a)
-#define STN2(x, v0, v1, ovs) /* nop */
-
 static inline void STM4(R *x, V v, INT ovs, const R *aligned_like)
 {
   (void)aligned_like; /* UNUSED */
   (void)aligned_like; /* UNUSED */
-  svint64_t  gvvl = svindex_s64(0, ovs);
+  svbool_t pg = ALLTRUE;
+  svint64_t gvvl = svindex_s64(0, ovs);
 
-  svst1_scatter_s64index_f64(MASKA, x, gvvl, v);
+  svst1_scatter_s64index_f64(pg, x, gvvl, v);
 }
-#define STN4(x, v0, v1, v2, v3, ovs)  /* no-op */
 #endif /* FFTW_SINGLE */
+
+#define STN4(x, v0, v1, v2, v3, ovs) /* no-op */
 
 /* twiddle storage #1: compact, slower */
 #define REQ_VTW1
@@ -301,12 +296,14 @@ static inline void STM4(R *x, V v, INT ovs, const R *aligned_like)
 
 static inline V BYTW1(const R *t, V sr)
 {
-     return VZMUL(LDA(t, 2, t), sr);
+    svbool_t pg = ALLTRUE;
+    return VZMUL(LDA(t, 2, t), sr);
 }
 
 static inline V BYTWJ1(const R *t, V sr)
 {
-     return VZMULJ(LDA(t, 2, t), sr);
+    svbool_t pg = ALLTRUE;
+    return VZMULJ(LDA(t, 2, t), sr);
 }
 
 /* twiddle storage #2: twice the space, faster (when in cache) */
@@ -317,20 +314,20 @@ static inline V BYTWJ1(const R *t, V sr)
 #undef VTW_SIZE
 #undef REQ_VTW2
 
-static inline V BYTW2(const R *t, V sr)
-{
-     V si = FLIP_RI(sr);
-     V ti = LDA(t + 2*VL, 2, t + 4*VL);
-     V tr = LDA(t, 2, t);
-     return VFMA(tr, sr, VMUL(ti, si));
+static inline V BYTW2(const R *t, V sr) {
+    svbool_t pg = ALLTRUE;
+    V si = FLIP_RI(sr);
+    V ti = LDA(t + 2 * VL, 2, t + 4 * VL);
+    V tr = LDA(t, 2, t);
+    return VFMA(tr, sr, VMUL(ti, si));
 }
 
-static inline V BYTWJ2(const R *t, V sr)
-{
-     V si = FLIP_RI(sr);
-     V ti = LDA(t + 2*VL, 2, t + 4*VL);
-     V tr = LDA(t, 2, t);
-     return VFNMS(ti, si, VMUL(tr, sr));
+static inline V BYTWJ2(const R *t, V sr) {
+    svbool_t pg = ALLTRUE;
+    V si = FLIP_RI(sr);
+    V ti = LDA(t + 2 * VL, 2, t + 4 * VL);
+    V tr = LDA(t, 2, t);
+    return VFNMS(ti, si, VMUL(tr, sr));
 }
 
 /* twiddle storage #3 */
@@ -345,6 +342,9 @@ static inline V BYTWJ2(const R *t, V sr)
 #undef VTW_SIZE
 #undef REQ_VTWS
 
+#define VENTER() \
+  svbool_t pg = ALLTRUE; \
+  svbool_t pgi = DS(svtrn1_b64, svtrn1_b32)(svpfalse_b(),ALLTRUE)
 #define VLEAVE() /* nothing */
 
 #include "simd-common.h"
