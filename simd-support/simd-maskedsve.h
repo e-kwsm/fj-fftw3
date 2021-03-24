@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2003, 2007-11 Matteo Frigo
  * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2020-2021 FUJITSU LIMITED
  *
  * ARM SVE support implemented by Romain Dolbeau. (c) 2017 Romain Dolbeau
  *

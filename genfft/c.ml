@@ -2,6 +2,7 @@
  * Copyright (c) 1997-1999 Massachusetts Institute of Technology
  * Copyright (c) 2003, 2007-14 Matteo Frigo
  * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
+ * Copyright (c) 2021 FUJITSU LIMITED
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
