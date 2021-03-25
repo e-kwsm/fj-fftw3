@@ -2,9 +2,9 @@ FFTW3
 ======
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
-**WARNING** There is a bug in the single precision SVE code.
+**WARNING** There is a bug in the single precision SVE code. This bug is currently under investigation. It may be fixed in the future.
 
-This is a fork of the [FFTW3](https://github.com/FFTW/fftw3) for the Armv8-A 64-bit architecture (AArch64) with 512-bit Scalable Vector Extension (SVE) support.
+This is a fork of the [FFTW3](https://github.com/FFTW/fftw3) for the Armv8-A 64-bit architecture (AArch64) with Scalable Vector Extension (SVE) support based on [rdolbeau/fftw3](https://github.com/rdolbeau/fftw3).
 
 See the [FFTW](http://www.fftw.org/) home page for more information.
 
@@ -38,7 +38,7 @@ $ autoreconf --verbose --install --symlink --force
 
 ### Single precision
 
-**WARNING** There is a bug in the single precision SVE code.
+**WARNING** There is a bug in the single precision SVE code. This bug is currently under investigation. It may be fixed in the future.
 
 * Native compilation using Fujitsu compiler (AArch64 target).
 
