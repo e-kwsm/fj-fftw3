@@ -726,6 +726,33 @@ if test "$with_combined_threads" = yes; then
     fi
 fi
 
+#LINKFORTRAN=""
+FORT_SUFFIX=""
+dnl -----------------------------------------------------------------------
+dnl  linkfortran option add                                                                                                       
+AC_ARG_ENABLE(linkfortran, [AC_HELP_STRING([--enable-linkfortran],[enable to link fujitsu fortran runtime libraries])], enable_linkfortran=$enableval, enable_linkfortran=no)
+if test "$enable_linkfortran"x = "yes"x; then
+        case "${host_cpu}" in
+             aarch64)
+                case "${CC}" in
+                     fcc*)
+                     archive_expsym_cmds="$archive_expsym_cmds --linkfortran"
+                     archive_cmds="$archive_cmds --linkfortran"
+		     FORT_SUFFIX=_fortran
+                     ;;
+                     esac
+                ;;
+                *)
+                AC_MSG_ERROR([Do not specify this option])
+             ;;
+        esac
+fi
+
+AC_SUBST(FORT_SUFFIX)
+AM_CONDITIONAL(LINKFORTRAN, test "$enable_linkfortran" = "yes")
+
+
+
 dnl Check for threads library...
 THREADLIBS=""
 if test "$enable_threads" = "yes"; then
