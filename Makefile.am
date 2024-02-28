@@ -17,7 +17,7 @@
 #===============================================================================
 
 OPTIONS_AUTOMAKE=gnu
-lib_LTLIBRARIES = libfftw3@PREC_SUFFIX@.la
+lib_LTLIBRARIES = libfftw3@PREC_SUFFIX@@FORT_SUFFIX@.la
 
 # pkgincludedir = $(includedir)/fftw3@PREC_SUFFIX@
 # nodist_pkginclude_HEADERS = config.h
@@ -25,7 +25,7 @@ lib_LTLIBRARIES = libfftw3@PREC_SUFFIX@.la
 # recompile genfft if maintainer mode is true
 if MAINTAINER_MODE
 GENFFT = genfft
-EXTRA_libfftw3@PREC_SUFFIX@_la_DEPENDENCIES = assert-shared-version-info
+EXTRA_libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_la_DEPENDENCIES = assert-shared-version-info
 else
 GENFFT =
 endif
@@ -129,13 +129,13 @@ endif
 
 if THREADS
 if COMBINED_THREADS
-COMBINED_THREADLIBS=threads/libfftw3@PREC_SUFFIX@_threads.la
+COMBINED_THREADLIBS=threads/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_threads.la
 endif
 endif
 
-libfftw3@PREC_SUFFIX@_la_SOURCES = 
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_la_SOURCES = 
 
-libfftw3@PREC_SUFFIX@_la_LIBADD =			\
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_la_LIBADD =			\
 	kernel/libkernel.la				\
 	dft/libdft.la					\
 	dft/scalar/libdft_scalar.la			\
@@ -155,38 +155,39 @@ libfftw3@PREC_SUFFIX@_la_LIBADD =			\
 
 if QUAD
 # cannot use -no-undefined since dependent on libquadmath
-libfftw3@PREC_SUFFIX@_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ $(ENVIRONMENT_LIBFFTW3_LDFLAGS)
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ $(ENVIRONMENT_LIBFFTW3_LDFLAGS)
 else
-libfftw3@PREC_SUFFIX@_la_LDFLAGS = -no-undefined -version-info	\
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_la_LDFLAGS = -no-undefined -version-info	\
 @SHARED_VERSION_INFO@  $(ENVIRONMENT_LIBFFTW3_LDFLAGS)
 endif
 
-fftw3@PREC_SUFFIX@.pc: fftw.pc
-	cp -f fftw.pc fftw3@PREC_SUFFIX@.pc
+fftw3@PREC_SUFFIX@@FORT_SUFFIX@.pc: fftw.pc
+	cp -f fftw.pc fftw3@PREC_SUFFIX@@FORT_SUFFIX@.pc
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = fftw3@PREC_SUFFIX@.pc
+pkgconfig_DATA = fftw3@PREC_SUFFIX@@FORT_SUFFIX@.pc
 
-FFTW3@PREC_SUFFIX@Config.cmake: $(top_srcdir)/FFTW3Config.cmake.in
+FFTW3@PREC_SUFFIX@@FORT_SUFFIX@Config.cmake: $(top_srcdir)/FFTW3Config.cmake.in
 	$(SED) \
 		-e 's|[@]PREC_SUFFIX@|@PREC_SUFFIX@|g' \
+		-e 's|[@]FORT_SUFFIX@|@FORT_SUFFIX@|g' \
 		-e 's|[@]CMAKE_INSTALL_FULL_LIBDIR@|$(libdir)|g' \
 		-e 's|[@]CMAKE_INSTALL_FULL_INCLUDEDIR@|$(includedir)|g' \
 		$(top_srcdir)/FFTW3Config.cmake.in > $@
-FFTW3@PREC_SUFFIX@ConfigVersion.cmake: $(top_srcdir)/FFTW3ConfigVersion.cmake.in
+FFTW3@PREC_SUFFIX@@FORT_SUFFIX@ConfigVersion.cmake: $(top_srcdir)/FFTW3ConfigVersion.cmake.in
 	$(SED) \
 		-e 's|[@]FFTW_VERSION@|@PACKAGE_VERSION@|g' \
 		$(top_srcdir)/FFTW3ConfigVersion.cmake.in > $@
 cmakedir = $(libdir)/cmake/fftw3
-cmake_DATA = FFTW3@PREC_SUFFIX@Config.cmake FFTW3@PREC_SUFFIX@ConfigVersion.cmake
+cmake_DATA = FFTW3@PREC_SUFFIX@@FORT_SUFFIX@Config.cmake FFTW3@PREC_SUFFIX@@FORT_SUFFIX@ConfigVersion.cmake
 
 WISDOM_DIR = /etc/fftw
-WISDOM = wisdom@PREC_SUFFIX@
+WISDOM = wisdom@PREC_SUFFIX@@FORT_SUFFIX@
 
 WISDOM_TIME=12 # default to 12-hour limit, i.e. overnight
 WISDOM_FLAGS=--verbose --canonical --time-limit=$(WISDOM_TIME)
 
 wisdom:
-	tools/fftw@PREC_SUFFIX@-wisdom -o $@ $(WISDOM_FLAGS)
+	tools/fftw@PREC_SUFFIX@@FORT_SUFFIX@-wisdom -o $@ $(WISDOM_FLAGS)
 
 install-wisdom: wisdom
 	$(mkinstalldirs) $(WISDOM_DIR)

@@ -4,7 +4,7 @@
 AM_CPPFLAGS = -I $(top_srcdir) -I $(top_srcdir)/api
 
 if MPI
-lib_LTLIBRARIES = libfftw3@PREC_SUFFIX@_mpi.la
+lib_LTLIBRARIES = libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_mpi.la
 include_HEADERS = fftw3-mpi.h
 nodist_include_HEADERS = fftw3-mpi.f03 fftw3l-mpi.f03
 noinst_PROGRAMS = mpi-bench
@@ -22,25 +22,25 @@ RDFT_SRC = rdft-serial.c rdft-rank-geq2.c rdft-rank-geq2-transposed.c rdft-rank1
 RDFT2_SRC = rdft2-serial.c rdft2-rank-geq2.c rdft2-rank-geq2-transposed.c rdft2-problem.c rdft2-solve.c mpi-rdft2.h
 SRC = any-true.c api.c block.c choose-radix.c conf.c dtensor.c fftw3-mpi.h ifftw-mpi.h rearrange.c wisdom-api.c f03-wrap.c
 
-libfftw3@PREC_SUFFIX@_mpi_la_SOURCES = $(SRC) $(TRANSPOSE_SRC) $(DFT_SRC) $(RDFT_SRC) $(RDFT2_SRC)
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_mpi_la_SOURCES = $(SRC) $(TRANSPOSE_SRC) $(DFT_SRC) $(RDFT_SRC) $(RDFT2_SRC)
 
-libfftw3@PREC_SUFFIX@_mpi_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
-libfftw3@PREC_SUFFIX@_mpi_la_LIBADD = ../libfftw3@PREC_SUFFIX@.la @MPILIBS@
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_mpi_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
+libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_mpi_la_LIBADD = ../libfftw3@PREC_SUFFIX@@FORT_SUFFIX@.la @MPILIBS@
 
 if THREADS
 mpi_bench_CFLAGS = $(PTHREAD_CFLAGS)
 if !COMBINED_THREADS
-LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@_threads.la
+LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_threads.la
 endif
 else
 if OPENMP
 mpi_bench_CFLAGS = $(OPENMP_CFLAGS)
-LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@_omp.la
+LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_omp.la
 endif
 endif
 
 mpi_bench_SOURCES = mpi-bench.c $(top_srcdir)/tests/fftw-bench.c $(top_srcdir)/tests/hook.c
-mpi_bench_LDADD = libfftw3@PREC_SUFFIX@_mpi.la $(LIBFFTWTHREADS) $(top_builddir)/libfftw3@PREC_SUFFIX@.la $(top_builddir)/libbench2/libbench2.a $(MPILIBS) $(THREADLIBS)
+mpi_bench_LDADD = libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_mpi.la $(LIBFFTWTHREADS) $(top_builddir)/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@.la $(top_builddir)/libbench2/libbench2.a $(MPILIBS) $(THREADLIBS)
 
 CHECK = $(top_srcdir)/tests/check.pl
 NUMCHECK=10

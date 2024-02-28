@@ -5,18 +5,18 @@ EXTRA_DIST = check.pl README
 if THREADS
 bench_CFLAGS = $(PTHREAD_CFLAGS)
 if !COMBINED_THREADS
-LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@_threads.la
+LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_threads.la
 endif
 else
 if OPENMP
 bench_CFLAGS = $(OPENMP_CFLAGS)
-LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@_omp.la
+LIBFFTWTHREADS = $(top_builddir)/threads/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@_omp.la
 endif
 endif
 
 bench_SOURCES = bench.c hook.c fftw-bench.c fftw-bench.h
 bench_LDADD = $(LIBFFTWTHREADS)				\
-$(top_builddir)/libfftw3@PREC_SUFFIX@.la		\
+$(top_builddir)/libfftw3@PREC_SUFFIX@@FORT_SUFFIX@.la		\
 $(top_builddir)/libbench2/libbench2.a $(THREADLIBS)
 
 check-local: bench$(EXEEXT)

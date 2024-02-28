@@ -36,25 +36,30 @@ $ autoreconf --verbose --install --symlink --force
 
 ## Building FFTW3
 
+### Notice
+* To create a library for fortran, specify `--enable-linkfortran` at configure,
+  if the compiler option -Nclang is specified in the environment variable for
+  compile command or in the compilation profile file.
+
 ### Single precision
 * Native compilation using Fujitsu compiler (AArch64 target).
 
 ```
-$ ./configure                        \
-    CC="fcc"                         \
-    F77="frt"                        \
-    CFLAGS='-Nclang -Ofast'          \
-    FFLAGS='-Kfast'                  \
-    --enable-sve                     \
-    --enable-armv8-cntvct-el0        \
-    --enable-float                   \
-    --enable-fma                     \
-    --enable-fortran                 \
-    --enable-openmp                  \
-    --enable-shared                  \
-    --prefix="$INSTALL_PATH"         \
-    --libdir="$INSTALL_PATH/lib64"   \
-    ac_cv_prog_f77_v='-###'          \
+$ ./configure                                   \
+    CC="fcc"                                    \
+    F77="frt"                                   \
+    CFLAGS='-Nclang -Ofast -ffj-no-fast-matmul' \
+    FFLAGS='-Kfast'                             \
+    --enable-sve                                \
+    --enable-armv8-cntvct-el0                   \
+    --enable-float                              \
+    --enable-fma                                \
+    --enable-fortran                            \
+    --enable-openmp                             \
+    --enable-shared                             \
+    --prefix="$INSTALL_PATH"                    \
+    --libdir="$INSTALL_PATH/lib64"              \
+    ac_cv_prog_f77_v='-###'                     \
     OPENMP_CFLAGS='-Kopenmp'
 $ make -j30
 ```
@@ -62,23 +67,23 @@ $ make -j30
 * Cross compilation using Fujitsu compiler (AArch64 target).
 
 ```
-$ ./configure                        \
-    CC="fccpx"                       \
-    F77="frtpx"                      \
-    CFLAGS='-Nclang -Ofast'          \
-    FFLAGS='-Kfast'                  \
-    --host=aarch64-unknown-linux-gnu \
-    --build=x86_64-cross-linux-gnu   \
-    --enable-sve                     \
-    --enable-armv8-cntvct-el0        \
-    --enable-float                   \
-    --enable-fma                     \
-    --enable-fortran                 \
-    --enable-openmp                  \
-    --enable-shared                  \
-    --prefix="$INSTALL_PATH"         \
-    --libdir="$INSTALL_PATH/lib64"   \
-    ac_cv_prog_f77_v='-###'          \
+$ ./configure                                   \
+    CC="fccpx"                                  \
+    F77="frtpx"                                 \
+    CFLAGS='-Nclang -Ofast -ffj-no-fast-matmul' \
+    FFLAGS='-Kfast'                             \
+    --host=aarch64-unknown-linux-gnu            \
+    --build=x86_64-cross-linux-gnu              \
+    --enable-sve                                \
+    --enable-armv8-cntvct-el0                   \
+    --enable-float                              \
+    --enable-fma                                \
+    --enable-fortran                            \
+    --enable-openmp                             \
+    --enable-shared                             \
+    --prefix="$INSTALL_PATH"                    \
+    --libdir="$INSTALL_PATH/lib64"              \
+    ac_cv_prog_f77_v='-###'                     \
     OPENMP_CFLAGS='-Kopenmp'
 $ make -j30
 ```
@@ -87,20 +92,20 @@ $ make -j30
 * Native compilation using Fujitsu compiler (AArch64 target).
 
 ```
-$ ./configure                        \
-    CC="fcc"                         \
-    F77="frt"                        \
-    CFLAGS='-Nclang -Ofast'          \
-    FFLAGS='-Kfast'                  \
-    --enable-sve                     \
-    --enable-armv8-cntvct-el0        \
-    --enable-fma                     \
-    --enable-fortran                 \
-    --enable-openmp                  \
-    --enable-shared                  \
-    --prefix="$INSTALL_PATH"         \
-    --libdir="$INSTALL_PATH/lib64"   \
-    ac_cv_prog_f77_v='-###'          \
+$ ./configure                                   \
+    CC="fcc"                                    \
+    F77="frt"                                   \
+    CFLAGS='-Nclang -Ofast -ffj-no-fast-matmul' \
+    FFLAGS='-Kfast'                             \
+    --enable-sve                                \
+    --enable-armv8-cntvct-el0                   \
+    --enable-fma                                \
+    --enable-fortran                            \
+    --enable-openmp                             \
+    --enable-shared                             \
+    --prefix="$INSTALL_PATH"                    \
+    --libdir="$INSTALL_PATH/lib64"              \
+    ac_cv_prog_f77_v='-###'                     \
     OPENMP_CFLAGS='-Kopenmp'
 $ make -j30
 ```
@@ -108,22 +113,22 @@ $ make -j30
 * Cross compilation using Fujitsu compiler (AArch64 target).
 
 ```
-$ ./configure                        \
-    CC="fccpx"                       \
-    F77="frtpx"                      \
-    CFLAGS='-Nclang -Ofast'          \
-    FFLAGS='-Kfast'                  \
-    --host=aarch64-unknown-linux-gnu \
-    --build=x86_64-cross-linux-gnu   \
-    --enable-sve                     \
-    --enable-armv8-cntvct-el0        \
-    --enable-fma                     \
-    --enable-fortran                 \
-    --enable-openmp                  \
-    --enable-shared                  \
-    --prefix="$INSTALL_PATH"         \
-    --libdir="$INSTALL_PATH/lib64"   \
-    ac_cv_prog_f77_v='-###'          \
+$ ./configure                                   \
+    CC="fccpx"                                  \
+    F77="frtpx"                                 \
+    CFLAGS='-Nclang -Ofast -ffj-no-fast-matmul' \
+    FFLAGS='-Kfast'                             \
+    --host=aarch64-unknown-linux-gnu            \
+    --build=x86_64-cross-linux-gnu              \
+    --enable-sve                                \
+    --enable-armv8-cntvct-el0                   \
+    --enable-fma                                \
+    --enable-fortran                            \
+    --enable-openmp                             \
+    --enable-shared                             \
+    --prefix="$INSTALL_PATH"                    \
+    --libdir="$INSTALL_PATH/lib64"              \
+    ac_cv_prog_f77_v='-###'                     \
     OPENMP_CFLAGS='-Kopenmp'
 $ make -j30
 ```
@@ -154,12 +159,29 @@ $ make install
 | Double precision and sequential version　　   | -lfftw3 -lm               |
 | Double precision and thread-parallel version  | -lfftw3_omp -lfftw3 -lm   |
 
+* If you specified `--enable-linkfortran` at configure, compile with one of the
+  following options.
+
+| FFTW3 libraries                   　　　　　  | Options                                   |
+| --------------------------------------------- | ----------------------------------------- |
+| Single precision and sequential version       | -lfftw3f_fortran -lm                      |
+| Single precision and thread-parallel version  | -lfftw3f_fortran_omp -lfftw3f_fortran -lm |
+| Double precision and sequential version　　   | -lfftw3_fortran -lm                       |
+| Double precision and thread-parallel version  | -lfftw3_fortran_omp -lfftw3_fortran -lm   |
+
 ## Example
 
 * Case with the single precision and sequential library.
 
 ```
-$ frt a.f -L$(INSTALL_PATH)/lib64 -lfftw3f -lm
+$ fcc a.c -L$(INSTALL_PATH)/lib64 -lfftw3f -lm
+```
+
+* If `--enable-linkfortran` is specified at configure, case with
+  the single precision and sequential library.
+
+```
+$ frt a.f -L$(INSTALL_PATH)/lib64 -lfftw3f_fortran -lm
 ```
 
 # License
